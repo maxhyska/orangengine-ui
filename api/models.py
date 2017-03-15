@@ -73,7 +73,48 @@ class Device(Base):
         self.hostname = kwargs.get('hostname')
         self.driver = kwargs.get('driver')
 
+#added
+class Address(Base):
 
+    class TypeOptions(enum.Enum):
+        ipv4 = 'ipv4'
+        dns = 'dns'
+        ipv4_range = 'range'
+
+    __tablename__ = 'service'
+    address_type = db.Column(db.Enum(TypeOptions))
+    comments = db.Column(db.String(255), default=None)
+    value = db.Column(db.String(255))
+    hostname = db.Column(db.String(255), default=None)
+
+def __init__(self, **kwargs):
+    self.address_type = kwargs.get('address_type')
+    self.comments = kwargs.get('comments')
+    self.value = kwargs.get('value')
+    self.hostname = kwargs.get('hostname')
+
+
+class Service(Base):
+    
+    class TypeOptions(enum.Enum):
+        layer4 = 'layer4'
+        layer7 = 'layer7'
+
+    __tablename__ = 'address'
+    type = db.Column(db.Enum(TypeOptions))
+    layer4_protocol = db.Column(db.String(255))
+    layer4_port = db.Column(db.String(255))
+    layer7_value = db.Column(db.String(255))
+    comments = db.Column(db.String(255), default=None)
+
+    def __init__(self, **kwargs):
+        self.type = kwargs.get('type')
+        self.layer4_protocol = kwargs.get('layer4_protocol')
+        self.layer4_port = kwargs.get('layer4_port')
+        self.layer7_value = kwargs.get('layer7_value')
+        self.comments = kwargs.get('comments')
+
+#end added
 class User(Base):
     """ User Model for storing user related details """
     __tablename__ = "user"

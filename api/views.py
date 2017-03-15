@@ -4,7 +4,7 @@ import subprocess
 from flask import jsonify, request, abort
 from api import app, db
 from api.auth import auth_token_required
-from api.models import ChangeRequest, Device
+from api.models import ChangeRequest, Device, Address, Service
 
 # Setup
 logger = logging.getLogger(__name__)
@@ -138,3 +138,107 @@ def device(id):
         device.deleted = True
         db.session.commit()
         return data_results('Deleted device %d' % id)
+
+#added
+@app.route('/v1.0/addresses/', methods=['POST', 'GET'])
+@auth_token_required
+def addresses():
+
+    if request.method == 'POST':
+        new_address = Address(**request.json)
+        db.session.add(new_address)
+        db.session.commit()
+        return data_results("success")
+
+    elif request.method == 'GET':
+        status = request.args.get('status')
+        deleted = request.args.get('deleted', False)
+        if status:
+            # only with a specified state
+            result_set = Address.query.filter_by(deleted=deleted, status=getattr(
+                                                    Address.StateOptions, status)).all()
+        else:
+            # all change requests
+            result_set = Address.query.filter_by(deleted=deleted).all()
+        serialized_list = []
+        for obj in result_set:
+            serialized_list.append(obj.serialize())
+        return data_results(serialized_list)
+
+@app.route('/v1.0/addresses/<int:id>/', methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+@auth_token_required
+def address(id):
+
+    # some weird session thing?
+    address = Address.query.filter(Address.id==id).first_or_404()
+
+    if request.method == 'GET':
+        return data_results(address.serialize())
+
+    elif request.method == 'PUT':
+        # not implemented
+        abort(501)
+
+    elif request.method == 'PATCH':
+        for key in request.json.keys():
+            if key != 'created_at' or key != 'modified_at' or key != 'id':
+                setattr(address, key, request.json[key])
+        db.session.commit()
+        return data_results('Patched address %d' % id)
+
+    elif request.method == 'DELETE':
+        address.deleted = True
+        db.session.commit()
+        return data_results('Deleted address %d' % id)
+
+@app.route('/v1.0/services/', methods=['POST', 'GET'])
+@auth_token_required
+def services():
+
+    if request.method == 'POST':
+        new_service = Service(**request.json)
+        db.session.add(new_service)
+        db.session.commit()
+        return data_results("success")
+
+    elif request.method == 'GET':
+        status = request.args.get('status')
+        deleted = request.args.get('deleted', False)
+        if status:
+            # only with a specified state
+            result_set = Service.query.filter_by(deleted=deleted, status=getattr(
+                                                    Service.StateOptions, status)).all()
+        else:
+            # all change requests
+            result_set = Service.query.filter_by(deleted=deleted).all()
+        serialized_list = []
+        for obj in result_set:
+            serialized_list.append(obj.serialize())
+        return data_results(serialized_list)
+
+@app.route('/v1.0/services/<int:id>/', methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+@auth_token_required
+def service(id):
+
+    # some weird session thing?
+    service = Service.query.filter(Service.id==id).first_or_404()
+
+    if request.method == 'GET':
+        return data_results(service.serialize())
+
+    elif request.method == 'PUT':
+        # not implemented
+        abort(501)
+
+    elif request.method == 'PATCH':
+        for key in request.json.keys():
+            if key != 'created_at' or key != 'modified_at' or key != 'id':
+                setattr(service, key, request.json[key])
+        db.session.commit()
+        return data_results('Patched service %d' % id)
+
+    elif request.method == 'DELETE':
+        service.deleted = True
+        db.session.commit()
+        return data_results('Deleted service %d' % id)
+#end added
